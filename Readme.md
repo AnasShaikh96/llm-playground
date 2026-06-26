@@ -45,4 +45,9 @@ According to what I have identified yet, there would be 3 layers of this app.
 
 
 
+## Plan of Action
+
+1. Priority as of now for Frontend and LLM Engine. 
+2. Will hold the Admin panel until prototype 1 is ready. 
+
 
