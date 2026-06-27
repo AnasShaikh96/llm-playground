@@ -1,12 +1,13 @@
-import torch
+from tokenizer import SimpleTokenize
 
-device = "cuda"
+text = "Hello World"
 
-a = torch.tensor([[1.,2.], [3.,4.]]).to(device)
-b = torch.tensor([[5.,6.], [7.,8.]]).to(device)
+tokenizer = SimpleTokenize(text)
 
+encoded = tokenizer.encode(text)
 
-c = a @ b
+print(encoded)
 
-print(c)
-print(c.device)
+decoded = tokenizer.decode(encoded)
+
+print(decoded)
