@@ -1,13 +1,19 @@
-from tokenizer import SimpleTokenize
+import torch
+import torch.nn as nn
 
-text = "Hello World"
+vocab_size = 100
+embedding_dims = 8
+max_length = 10
 
-tokenizer = SimpleTokenize(text)
+token_embedding = nn.Embedding(vocab_size,embedding_dims)
+position_embedding = nn.Embedding(max_length,embedding_dims)
 
-encoded = tokenizer.encode(text)
 
-print(encoded)
+tokens = torch.tensor([5,12,9])
+positions = torch.arange(len(tokens))
 
-decoded = tokenizer.decode(encoded)
+x = token_embedding(tokens) + position_embedding(positions)
 
-print(decoded)
+print(tokens)
+print(positions)
+print(x)

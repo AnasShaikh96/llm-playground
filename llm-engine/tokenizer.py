@@ -11,3 +11,4 @@ class SimpleTokenize:
 
     def decode(self, tokens):
         return "".join(self.itos[token] for token in tokens)
+    
