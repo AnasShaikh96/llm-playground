@@ -1,4 +1,4 @@
-class SimpleTokenize: 
+class SimpleTokenizer: 
     def __init__(self, text):
         chars = sorted(list(set(text)))
 
