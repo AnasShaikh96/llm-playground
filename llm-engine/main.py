@@ -1,21 +1,18 @@
 import torch
-import torch.nn as nn
 
-class GPT(nn.Module):
-    def __init__(self, vocab_size, embedding_dim, max_seq_len):
-        super.__init__
+from config import GPTConfig
+from model import GPT
 
-        self.token_embedding = nn.Embedding(vocab_size, embedding_dim)
+config = GPTConfig(vocab_size=100)
 
-        self.position_embedding = nn.Embedding(max_seq_len, embedding_dim)
+model = GPT(config)
 
-    def forward(self,x):  
-        batch_size, seq_len = x.shape
-        
-        positions = torch.arange(seq_len,device=x.device)
-        token_embedding = x.token_embedding(x)
-        position_embedding = x.position_embedding(positions)
+tokens = torch.randint(
+    0,
+    config.vocab_size,
+    (2, 8)
+)
 
-        x = token_embeddings + position_embeddings
-        
-        return  x
+logits = model(tokens)
+
+print(logits.shape)

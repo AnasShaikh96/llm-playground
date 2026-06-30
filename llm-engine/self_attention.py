@@ -15,6 +15,15 @@ class SelfAttention(nn.Module):
         v = self.value(x)
 
         scores = q @ k.transpose(-2, -1)
+        scores = scores / math.sqrt(q.size(-1))
+
+        seq_len = x.size(1)
+
+        mask = torch.tril(
+            torch.ones(seq_len, seq_len, device=x.device)
+        )
+
+        scores = scores.masked_fill(mask == 0, float("-inf"))
 
         weights = torch.softmax(scores, dim=-1)
 
