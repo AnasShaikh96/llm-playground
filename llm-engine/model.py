@@ -131,7 +131,6 @@ class TransformerBlock(nn.Module):
         return x
 
 class GPT(nn.Module):
-
     def __init__(self, config):
         super().__init__()
 
@@ -248,6 +247,7 @@ class GPT(nn.Module):
             )
 
         return idx
+   
     def __init__(self, config):
         super().__init__()
 
