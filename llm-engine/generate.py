@@ -4,7 +4,6 @@ from config import GPTConfig
 from tokenizer import SimpleTokenizer
 from model import GPT
 
-
 MODEL_PATH = "checkpoints/model.pt"
 TOKENIZER_PATH = "checkpoints/tokenizer.json"
 
