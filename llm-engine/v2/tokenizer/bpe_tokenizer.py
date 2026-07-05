@@ -1,6 +1,5 @@
 from collections import defaultdict
 
-
 class BPETokenizer:
     def __init__(self):
         # token -> id
@@ -10,10 +9,72 @@ class BPETokenizer:
         self.merges = {}
 
     def train(self, text: str, num_merges: int):
-        pass
 
-    def encode(self, text: str):
-        pass
+        corpus = self._build_initial_corpus(text)
+
+        # Save this before any merges happen
+        initial_corpus = [word[:] for word in corpus]
+
+        for i in range(num_merges):
+
+            pair_counts = self._count_pairs(corpus)
+
+            if not pair_counts:
+                break
+
+            best_pair = max(pair_counts, key=pair_counts.get)
+
+            merged_token = "".join(best_pair)
+
+            self.merges[best_pair] = merged_token
+
+            corpus = self._merge_pair(corpus, best_pair)
+
+            print(
+                f"Merge {i+1}: {best_pair} -> {merged_token}"
+            )
+
+        self._build_vocab(initial_corpus)
+
+        return corpus
+    
+
+    def _build_vocab(self, corpus):
+        """
+        Builds the vocabulary from:
+        1. Initial characters
+        2. Learned merged tokens
+        """
+
+        unique_tokens = set()
+
+        # Base characters
+        for word in corpus:
+            unique_tokens.update(word)
+
+        # Learned merged tokens
+        unique_tokens.update(self.merges.values())
+
+        tokens = sorted(unique_tokens)
+
+        self.vocab = {
+            token: idx
+            for idx, token in enumerate(tokens)
+        }
+
+        self.inverse_vocab = {
+            idx: token
+            for token, idx in self.vocab.items()
+        }
+
+    def encode(self, text):
+
+        tokens = list(text)
+
+        for pair in self.merges:
+            tokens = self._apply_merge(tokens, pair)
+
+        return [self.vocab[token] for token in tokens]
 
     def decode(self, ids):
         pass
@@ -63,70 +124,40 @@ class BPETokenizer:
 
         return dict(pair_counts)
 
-    def _merge_pair(self, corpus, pair):
-        """
-        Replaces every occurrence of a token pair with a merged token.
+    def _apply_merge(self, tokens, pair):
 
-        Example:
+        merged = "".join(pair)
 
-        pair = ("l", "o")
+        result = []
 
-        ["l","o","w"]
+        i = 0
 
-        becomes
+        while i < len(tokens):
 
-        ["lo","w"]
-        """
+            if (
+                i < len(tokens) - 1
+                and tokens[i] == pair[0]
+                and tokens[i + 1] == pair[1]
+            ):
+                result.append(merged)
+                i += 2
+            else:
+                result.append(tokens[i])
+                i += 1
 
-        merged_token = "".join(pair)
-
-        new_corpus = []
-
-        for word in corpus:
-            new_word = []
-
-            i = 0
-
-            while i < len(word):
-
-                if (
-                    i < len(word) - 1
-                    and word[i] == pair[0]
-                    and word[i + 1] == pair[1]
-                ):
-                    new_word.append(merged_token)
-                    i += 2
-                else:
-                    new_word.append(word[i])
-                    i += 1
-
-            new_corpus.append(new_word)
-
-        return new_corpus
+        return result
 
 
 if __name__ == "__main__":
 
     tokenizer = BPETokenizer()
 
-    corpus = tokenizer._build_initial_corpus(
-        "low low lower lowest below swallow"
+    tokenizer.train(
+        "low low lower lowest",
+        num_merges=10
     )
 
-    print("Initial Corpus")
-    print(corpus)
+    print("\nVocabulary")
 
-    pairs = tokenizer._count_pairs(corpus)
-
-    print("\nPair Counts")
-    for pair, count in sorted(pairs.items()):
-        print(pair, count)
-
-    best_pair = max(pairs, key=pairs.get)
-
-    print(f"\nBest Pair: {best_pair}")
-
-    corpus = tokenizer._merge_pair(corpus, best_pair)
-
-    print("\nAfter Merge")
-    print(corpus)
+    for token, idx in tokenizer.vocab.items():
+        print(idx, token)
