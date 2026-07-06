@@ -2,17 +2,14 @@ from collections import defaultdict
 
 class BPETokenizer:
     def __init__(self):
-        # token -> id
         self.vocab = {}
-
-        # (token1, token2) -> merged_token
+        self.inverse_vocab = {}
         self.merges = {}
 
     def train(self, text: str, num_merges: int):
 
         corpus = self._build_initial_corpus(text)
 
-        # Save this before any merges happen
         initial_corpus = [word[:] for word in corpus]
 
         for i in range(num_merges):
@@ -38,24 +35,68 @@ class BPETokenizer:
 
         return corpus
     
-
-    def _build_vocab(self, corpus):
+    def _merge_pair(self, corpus, pair):
         """
-        Builds the vocabulary from:
-        1. Initial characters
-        2. Learned merged tokens
+        Replace every occurrence of `pair` in the corpus with the merged token.
+
+        Example:
+
+        pair = ("l", "o")
+
+        [
+            ["l", "o", "w"],
+            ["l", "o", "w", "e", "r"]
+        ]
+
+        becomes
+
+        [
+            ["lo", "w"],
+            ["lo", "w", "e", "r"]
+        ]
         """
 
-        unique_tokens = set()
+        merged_token = "".join(pair)
 
-        # Base characters
+        new_corpus = []
+
         for word in corpus:
-            unique_tokens.update(word)
+            new_word = []
 
-        # Learned merged tokens
-        unique_tokens.update(self.merges.values())
+            i = 0
 
-        tokens = sorted(unique_tokens)
+            while i < len(word):
+
+                if (
+                    i < len(word) - 1
+                    and word[i] == pair[0]
+                    and word[i + 1] == pair[1]
+                ):
+                    new_word.append(merged_token)
+                    i += 2
+                else:
+                    new_word.append(word[i])
+                    i += 1
+
+            new_corpus.append(new_word)
+
+        return new_corpus
+
+    def _build_vocab(self, initial_corpus):
+        """
+        Build the vocabulary from:
+        - all original characters
+        - every merged token
+        """
+
+        tokens = set()
+
+        for word in initial_corpus:
+            tokens.update(word)
+
+        tokens.update(self.merges.values())
+
+        tokens = sorted(tokens)
 
         self.vocab = {
             token: idx
@@ -71,13 +112,22 @@ class BPETokenizer:
 
         tokens = list(text)
 
-        for pair in self.merges:
+        for pair in self.merges.keys():
             tokens = self._apply_merge(tokens, pair)
 
-        return [self.vocab[token] for token in tokens]
+        return [
+            self.vocab[token]
+            for token in tokens
+        ]
 
     def decode(self, ids):
-        pass
+
+        tokens = [
+            self.inverse_vocab[token_id]
+            for token_id in ids
+        ]
+
+        return "".join(tokens)
 
     def save(self, path):
         pass
@@ -158,6 +208,14 @@ if __name__ == "__main__":
     )
 
     print("\nVocabulary")
+    print(tokenizer.vocab)
 
-    for token, idx in tokenizer.vocab.items():
-        print(idx, token)
+    encoded = tokenizer.encode("lower")
+
+    print("\nEncoded")
+    print(encoded)
+
+    decoded = tokenizer.decode(encoded)
+
+    print("\nDecoded")
+    print(decoded)
