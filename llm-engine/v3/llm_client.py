@@ -1,7 +1,7 @@
 from ollama import Client
 
 OLLAMA_HOST = "http://localhost:11434"
-MODEL_NAME = "gemma4:e4b"
+MODEL_NAME = "qwen3.5:4b"
 
 client = Client(host=OLLAMA_HOST)
 
