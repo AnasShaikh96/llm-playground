@@ -53,3 +53,56 @@ def test_chat_returns_service_unavailable_when_ollama_fails():
     assert response.get_json() == {
         "error": "The language model is currently unavailable"
     }
+
+
+def test_health_checks_configured_model():
+    result = {
+        "status": "healthy",
+        "model": "qwen3.5:4b",
+        "capabilities": ["completion", "tools"],
+    }
+    with patch("v3.api.internal.llm_client.health", return_value=result):
+        response = _client().get("/internal/health")
+
+    assert response.status_code == 200
+    assert response.get_json() == result
+
+
+def test_generate_accepts_prompt_and_system_message():
+    result = {"model": "qwen3.5:4b", "response": "Hello!", "done": True}
+    with patch(
+        "v3.api.internal.llm_client.generate", return_value=result
+    ) as generate:
+        response = _client().post(
+            "/internal/generate",
+            json={"prompt": "Say hello", "system": "Be concise"},
+        )
+
+    assert response.status_code == 200
+    assert response.get_json() == result
+    generate.assert_called_once_with(prompt="Say hello", system="Be concise")
+
+
+def test_embed_accepts_multiple_inputs():
+    result = {"model": "embeddinggemma", "embeddings": [[0.1], [0.2]]}
+    with patch("v3.api.internal.llm_client.embed", return_value=result) as embed:
+        response = _client().post(
+            "/internal/embed",
+            json={"model": "embeddinggemma", "input": ["one", "two"]},
+        )
+
+    assert response.status_code == 200
+    assert response.get_json() == result
+    embed.assert_called_once_with(
+        input_text=["one", "two"], model="embeddinggemma"
+    )
+
+
+def test_show_defaults_to_configured_model():
+    result = {"capabilities": ["completion"], "details": {"family": "qwen3"}}
+    with patch("v3.api.internal.llm_client.show", return_value=result) as show:
+        response = _client().get("/internal/show")
+
+    assert response.status_code == 200
+    assert response.get_json() == result
+    show.assert_called_once_with(model=None)
