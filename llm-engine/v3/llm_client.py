@@ -5,7 +5,7 @@ from ollama import Client
 
 
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
-MODEL_NAME = os.getenv("OLLAMA_MODEL", "qwen3.5:4b")
+MODEL_NAME = os.getenv("OLLAMA_MODEL", "qwen3:1.7b")
 EMBED_MODEL_NAME = os.getenv("OLLAMA_EMBED_MODEL", MODEL_NAME)
 NUM_CONTEXT_TOKENS = int(os.getenv("OLLAMA_NUM_CTX", "4096"))
 
